@@ -3,8 +3,9 @@ import MenuItem from "@mui/material/MenuItem";
 import FormControl from "@mui/material/FormControl";
 import Select from "@mui/material/Select";
 import InputLabel from "@mui/material/InputLabel";
+import Typography from "@mui/material/Typography";
 
-function CompanySelectionComponenet({ data }) {
+function CompanySelectionComponenet({ data, erros }) {
   const [age, setAge] = React.useState("");
 
   const handleChangeAge = (event) => {
@@ -22,13 +23,13 @@ function CompanySelectionComponenet({ data }) {
         onChange={handleChangeAge}
         name="Company"
       >
-        <MenuItem value="">
-          <em>None</em>
-        </MenuItem>
-        {data.map((company,index) => (
-          <MenuItem key={index} value={company}>{company}</MenuItem>
+        {data.map((company, index) => (
+          <MenuItem key={index} value={company}>
+            {company}
+          </MenuItem>
         ))}
       </Select>
+      <Typography sx={{ color: "red" }}>{erros.Company}</Typography>
     </FormControl>
   );
 }

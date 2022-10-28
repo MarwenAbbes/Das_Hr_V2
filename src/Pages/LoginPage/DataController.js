@@ -13,6 +13,7 @@ export const GetSaiSession = async () => {
 
 export const AuthenticateUser = async (company, username, password) => {
   let respo;
+
   try {
     respo = await axios.get("GetTable", {
       headers: {

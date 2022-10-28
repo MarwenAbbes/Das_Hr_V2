@@ -7,35 +7,69 @@ import Box from "@mui/material/Box";
 import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
 import Typography from "@mui/material/Typography";
 import Link from "@mui/material/Link";
-import axios from "axios";
+import { useEffect } from "react";
+import { useState } from "react";
+import { useContext } from "react";
+import { useNavigate } from "react-router-dom";
 
 import Copyrights from "../../../Components/Shared/Copyrights";
 import EmailHolderComponenet from "./EmailHolderComponenet";
 import PasswordHolderComponent from "./PasswordHolderComponent";
 import CompanySelectionComponenet from "./CompanySelectionComponenet";
 import { PrimaryColor } from "../../../assets/Colors";
-import { useEffect } from "react";
-import { useState } from "react";
 import { removeDuplicates } from "../../../Utils/Utils";
 import { AuthenticateUser, GetSaiSession } from "../DataController";
+import { validateForm } from "../Validation";
+import { userContext } from "../../../Contexts/UserContext";
+import CustomAlert from "../../../Components/Shared/CustomAlert";
 
 function RightPartPageComponenet() {
+  const { userContextState, SetuserContextState } = useContext(userContext);
+  const navigate = useNavigate();
   //************************STATES********************************
   const [UsersListState, SetUsersListState] = useState([{ a: 0 }]);
   const [CompaniesState, SetCompaniesState] = useState([]);
+  const [FormErrors, SetFormErrors] = useState({
+    Company: "",
+    email: "",
+    password: "",
+  });
+  const [DisplayAlert, SetDisplayAlert] = useState(false);
   //************************END STATES********************************
+
   const handleSubmit = (event) => {
     event.preventDefault();
     const data = new FormData(event.currentTarget);
-    AuthenticateUser(
-      data.get("Company"),
-      data.get("email"),
-      data.get("password")
-    ).then((value) => console.log(value.length));
+    if (validateForm(data, SetFormErrors)) {
+      AuthenticateUser(
+        data.get("Company"),
+        data.get("email"),
+        data.get("password")
+      ).then((value) => {
+        if (value.length === 1) {
+          SetuserContextState({
+            username: data.get("email"),
+            company: data.get("Company"),
+          });
+          localStorage.setItem("user", data.get("email"));
+          navigate("/");
+        } else {
+          SetDisplayAlert(true);
+        }
+      });
+    }
   };
 
   useEffect(() => {
     let Companies = [];
+    const user = localStorage.getItem("user");
+    if (
+      user !== "" &&
+      userContextState !== "" &&
+      userContextState.username == user
+    ) {
+      navigate("/");
+    }
     if (UsersListState === undefined || UsersListState.length <= 1) {
       GetSaiSession().then((respo) => {
         SetUsersListState(respo);
@@ -51,6 +85,13 @@ function RightPartPageComponenet() {
 
   return (
     <Grid item xs={12} sm={8} md={5} component={Paper} elevation={6} square>
+      <CustomAlert
+        closeFunction={SetDisplayAlert}
+        open={DisplayAlert}
+        msg={"Le nom d'utilisateur ou le mot de passe peut être erroné"}
+        severity={"error"}
+      />
+
       <Box
         sx={{
           my: 8,
@@ -67,14 +108,22 @@ function RightPartPageComponenet() {
           BIENVENUE
         </Typography>
         <Box component="form" noValidate onSubmit={handleSubmit} sx={{ mt: 1 }}>
-          <CompanySelectionComponenet data={CompaniesState} />
-          <EmailHolderComponenet />
-          <PasswordHolderComponent />
+          <CompanySelectionComponenet
+            data={CompaniesState}
+            erros={FormErrors}
+          />
+          <EmailHolderComponenet erros={FormErrors} />
+          <PasswordHolderComponent erros={FormErrors} />
           <Button
             type="submit"
             fullWidth
             variant="contained"
-            sx={{ mt: 3, mb: 2, backgroundColor: PrimaryColor }}
+            sx={{
+              mt: 3,
+              mb: 2,
+              backgroundColor: PrimaryColor,
+              ":hover": { backgroundColor: PrimaryColor },
+            }}
           >
             Connexion
           </Button>
