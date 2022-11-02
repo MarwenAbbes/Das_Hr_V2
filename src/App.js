@@ -6,6 +6,7 @@ import { useState } from "react";
 import { userContext } from "./Contexts/UserContext";
 import AuthRouter from "./assets/Routes/AuthRouter";
 
+
 function App() {
   const [userContextState, SetuserContextState] = useState({
     username: "",
@@ -17,7 +18,7 @@ function App() {
         <Routes>
           <Route path="/login" element={<LoginPage />} />
           <Route element={<AuthRouter />}>
-            <Route path="/" element={<HomePage />} extact />
+            <Route path="/" element={<HomePage />} extact />          
           </Route>
         </Routes>
       </userContext.Provider>

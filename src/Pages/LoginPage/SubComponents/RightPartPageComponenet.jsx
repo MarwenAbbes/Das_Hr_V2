@@ -52,6 +52,7 @@ function RightPartPageComponenet() {
             company: data.get("Company"),
           });
           localStorage.setItem("user", data.get("email"));
+          localStorage.setItem("company", data.get("Company"));
           navigate("/");
         } else {
           SetDisplayAlert(true);
@@ -64,9 +65,10 @@ function RightPartPageComponenet() {
     let Companies = [];
     const user = localStorage.getItem("user");
     if (
-      user !== "" &&
-      userContextState !== "" &&
-      userContextState.username == user
+      user !== "" 
+      // &&
+      // userContextState !== "" &&
+      // userContextState.username == user
     ) {
       navigate("/");
     }

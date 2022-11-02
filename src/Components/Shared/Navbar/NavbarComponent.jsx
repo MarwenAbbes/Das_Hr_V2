@@ -6,13 +6,19 @@ import IconButton from "@mui/material/IconButton";
 import Typography from "@mui/material/Typography";
 import MenuIcon from "@mui/icons-material/Menu";
 import MoreIcon from "@mui/icons-material/MoreVert";
+import { useContext } from "react";
 
 import { PrimaryColor } from "../../../assets/Colors";
 import LargeMenuComponenent from "./SubComponenents/LargeMenuComponenent";
 import MobileMenuComponenet from "./SubComponenents/MobileMenuComponenet";
+import { SidePanelContext } from "../../../Contexts/UserContext";
 
 const mobileMenuId = "primary-search-account-menu-mobile";
 function NavbarComponent() {
+   const { SidePanelContextState, SetSidePanelContextState } =
+     useContext(SidePanelContext);
+
+
   const [mobileMoreAnchorEl, setMobileMoreAnchorEl] = React.useState(null);
 
   const handleMobileMenuOpen = (event) => {
@@ -34,6 +40,9 @@ function NavbarComponent() {
             color="inherit"
             aria-label="open drawer"
             sx={{ mr: 2 }}
+            onClick={()=>{
+              SetSidePanelContextState(!SidePanelContextState);
+            }}
           >
             <MenuIcon />
           </IconButton>
