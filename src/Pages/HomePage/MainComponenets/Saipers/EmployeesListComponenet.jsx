@@ -1,4 +1,15 @@
-import { Box, Button, List, Typography } from "@mui/material";
+import {
+  Box,
+  Button,
+  CardHeader,
+  Collapse,
+  Divider,
+  FormLabel,
+  Input,
+  InputAdornment,
+  List,
+  Typography,
+} from "@mui/material";
 import React from "react";
 import { useEffect } from "react";
 import { useContext } from "react";
@@ -10,6 +21,10 @@ import { SaipersSelectedFields } from "../Codifications/Utils/Consts";
 import UserCard from "./SubComponenets/UserCardComponenent";
 import ReactLoading from "react-loading";
 import UsersListComponenet from "./SubComponenets/UsersListComponenet";
+import { ArrowDropDown, Search } from "@mui/icons-material";
+import UserInfoElementComponenet from "./SubComponenets/UserInfoElementComponenet";
+import AddEmployeeStepperComponenet from "./SubComponenets/AddEmployeeStepperComponenet";
+import UserControlHeaderComponenet from "./SubComponenets/UserControlHeaderComponenet";
 
 function EmployeesListComponenet() {
   const { userContextState, SetuserContextState } = useContext(userContext);
@@ -26,16 +41,14 @@ function EmployeesListComponenet() {
   const [TabCont, SetTabCont] = useState();
 
   const [loading, setLoading] = useState(true);
+  const [Mode, SetMode] = useState("Consultation");
+  const [
+    InformationsPersonnellesCollapse,
+    SetInformationsPersonnellesCollapse,
+  ] = useState(true);
+  const [RémunérationCollapse, SetRémunérationCollapse] = useState(true);
 
   const [selectedIndex, setSelectedIndex] = useState(0);
-  const [CategoryIndex, setCategoryIndex] = useState(0);
-  const [ServiceIndex, SetServiceIndex] = useState(0);
-  const [CategoryBIndex, SetCategoryBIndex] = useState(0);
-  const [SiteIndex, SetSiteIndex] = useState(0);
-  const [NationaliteIndex, SetNationaliteIndex] = useState(0);
-  const [TypeCalenderIndex, SetTypeCalenderIndex] = useState(0);
-  const [TypePaieIndex, SetTypePaieIndex] = useState(0);
-  const [typeContratIndex, SetTypeContrat] = useState(0);
 
   const [PersonFunction, SetPersonFunction] = useState("");
   const [PersonService, SetPersonService] = useState("");
@@ -46,14 +59,17 @@ function EmployeesListComponenet() {
   const [PersonRegimeSalaire, SetPersonRegimeSalaire] = useState("");
 
   const [selectedPerson, setSelectedPerson] = useState({});
+  const [searchResult, SetSearchResult] = useState({ persons: [] });
   //**************************************************************************** */
 
+  let personInfos = {};
   useEffect(() => {
     if (saipers.persons.length <= 1) {
       GetTable(ClientDB, "Saipers").then(
         (response) => (
           setSaipers({ persons: response }),
-          GetTable(ClientDB, "tabcate").then(
+          SetSearchResult({ persons: response }),
+          GetTable(ClientDB, "Tabcate").then(
             (response) => (
               setTabcate(response),
               GetTable(ClientDB, "TabVert").then(
@@ -119,28 +135,40 @@ function EmployeesListComponenet() {
     TabCont,
   ]);
 
+  const handleSearchChange = (e) => {
+    if (!e.target.value) return SetSearchResult(saipers);
+
+    const resultArray = saipers.persons.filter(
+      (person) =>
+        person.Nom.includes(e.target.value) ||
+        person.Prenom.includes(e.target.value)
+    );
+
+    SetSearchResult({ persons: resultArray });
+  };
   const handleListItemClick = (index, person) => {
     setSelectedIndex(index);
     setSelectedPerson(person);
-
-    setCategoryIndex(
-      tabcate.findIndex((cate) => cate.CODE === person.Categorie)
+    const CategoryIndex = tabcate.findIndex(
+      (cate) => cate.CODE === person.Categorie
     );
-    SetServiceIndex(TabVert.findIndex((cate) => cate.CODE === person.Service));
-    SetCategoryBIndex(
-      TabCatB.findIndex((cate) => cate.CODE === person.CategorieB)
+    const ServiceIndex = TabCatB.findIndex(
+      (cate) => cate.CODE === person.CategorieB
     );
-    SetSiteIndex(
-      SaiSite.findIndex((cate) => cate.Compteur === person.Code_Site)
+    const CategoryBIndex = TabCatB.findIndex(
+      (cate) => cate.CODE === person.CategorieB
     );
-    SetNationaliteIndex(
-      TabNatu.findIndex((cate) => cate.CODE === person.Nationalite)
+    const SiteIndex = SaiSite.findIndex(
+      (cate) => cate.Compteur === person.Code_Site
     );
-    SetTypeCalenderIndex(
-      TabCale.findIndex((cate) => cate.CODE === person.Horaire)
+    const NationaliteIndex = TabNatu.findIndex(
+      (cate) => cate.CODE === person.Nationalite
     );
-    SetTypePaieIndex(
-      TabPaie.findIndex((cate) => cate.CODE === person.AssisePaie)
+    const TypeCalenderIndex = TabCale.findIndex(
+      (cate) => cate.CODE === person.Horaire
+    );
+    const TypePaieIndex = TabPaie.findIndex(
+      (cate) => cate.CODE === person.AssisePaie
     );
 
     SetPersonFunction(
@@ -166,10 +194,12 @@ function EmployeesListComponenet() {
     SetPersonRegimeSalaire(
       TabPaie[TypePaieIndex].LABEL ? TabPaie[TypePaieIndex].LABEL : ""
     );
+
+    SetMode("Consultation");
   };
 
   return (
-    <Box sx={{margin:"0px", padding: "0px"}}>
+    <Box sx={{ margin: "0px", padding: "0px" }}>
       {loading && (
         <Box
           style={{
@@ -195,14 +225,173 @@ function EmployeesListComponenet() {
               float: "left",
             }}
           >
+            <Input
+              sx={{ height: "3em", width: "100%" }}
+              startAdornment={
+                <InputAdornment position="end">
+                  <Search />
+                </InputAdornment>
+              }
+              type="search"
+              onChange={handleSearchChange}
+            />
             <UsersListComponenet
-              saipers={saipers}
+              saipers={searchResult}
               tabcate={tabcate}
               selectedIndex={selectedIndex}
               handleListItemClick={handleListItemClick}
             />
           </Box>
-          <Box sx={{ width: "80%", float: "right" }}> hiii</Box>
+          <Box sx={{ width: "80%", float: "right" }}>
+            <UserControlHeaderComponenet HandelFunction={SetMode} />
+
+            {Mode === "Add" && (
+              <Box sx={{ marginTop: "5%" }}>
+                <AddEmployeeStepperComponenet
+                  TypeContrat={TabCont}
+                  TypeFonction={tabcate}
+                  TypeCalender={TabCale}
+                  TypeRémunération={TabPaie}
+                />
+              </Box>
+            )}
+            {selectedPerson.Nom !== undefined && Mode === "Consultation" && (
+              <Box>
+                <CardHeader
+                  title={selectedPerson.Nom + " " + selectedPerson.Prenom}
+                />
+                <Divider />
+                <FormLabel sx={{ marginLeft: "0.9em" }} component="legend">
+                  Identité
+                </FormLabel>
+                <Box
+                  sx={{ display: "flex", flexWrap: "wrap", paddingLeft: "2em" }}
+                >
+                  <UserInfoElementComponenet
+                    PersonSite={PersonSite}
+                    title={"Site"}
+                  />
+                  <UserInfoElementComponenet
+                    PersonSite={selectedPerson.Matricule}
+                    title={"Matricule"}
+                  />
+                  <UserInfoElementComponenet
+                    PersonSite={PersonFunction}
+                    title={"Fonction"}
+                  />
+                  <UserInfoElementComponenet
+                    PersonSite={PersonService}
+                    title={"Service"}
+                  />
+                  <UserInfoElementComponenet
+                    PersonSite={PersonCategory}
+                    title={"Catégorie"}
+                  />
+                </Box>
+                <br />
+                <Box sx={{ display: "flex" }}>
+                  <FormLabel sx={{ marginLeft: "0.9em" }} component="legend">
+                    Informations personnelles
+                  </FormLabel>
+                  <ArrowDropDown
+                    onClick={() => {
+                      SetInformationsPersonnellesCollapse(
+                        !InformationsPersonnellesCollapse
+                      );
+                    }}
+                  />
+                </Box>
+                <Collapse in={InformationsPersonnellesCollapse}>
+                  <Box
+                    sx={{
+                      display: "flex",
+                      flexWrap: "wrap",
+                      paddingLeft: "2em",
+                    }}
+                  >
+                    <UserInfoElementComponenet
+                      PersonSite={selectedPerson.DateNaissance}
+                      title={"Date de naissance"}
+                    />
+                    <UserInfoElementComponenet
+                      PersonSite={selectedPerson.LieuNaissance}
+                      title={" Lieu de naissance"}
+                    />
+                    <UserInfoElementComponenet
+                      PersonSite={selectedPerson.Sexe}
+                      title={"Sexe"}
+                    />
+                    <UserInfoElementComponenet
+                      PersonSite={selectedPerson.NomJeuneFille}
+                      title={"Nom de jeune fille"}
+                    />
+                    <UserInfoElementComponenet
+                      PersonSite={PersonNationalite}
+                      title={"Nationalité"}
+                    />
+                    <UserInfoElementComponenet
+                      PersonSite={selectedPerson.NumCI}
+                      title={"N° de la C. I."}
+                    />
+
+                    <UserInfoElementComponenet
+                      PersonSite={selectedPerson.DateCI}
+                      title={"Date de la C. I."}
+                    />
+                    <UserInfoElementComponenet
+                      PersonSite={selectedPerson.Email}
+                      title={"E-mail"}
+                    />
+                  </Box>
+                </Collapse>
+                <br />
+                <Box sx={{ display: "flex" }}>
+                  <FormLabel sx={{ marginLeft: "0.9em" }} component="legend">
+                    Rémunération
+                  </FormLabel>
+                  <ArrowDropDown
+                    onClick={() => {
+                      SetRémunérationCollapse(!RémunérationCollapse);
+                    }}
+                  />
+                </Box>
+                <Collapse in={RémunérationCollapse}>
+                  <Box
+                    sx={{
+                      display: "flex",
+                      flexWrap: "wrap",
+                      paddingLeft: "2em",
+                    }}
+                  >
+                    <UserInfoElementComponenet
+                      PersonSite={selectedPerson.DateRectrutement}
+                      title={"Date de recrutement"}
+                    />
+                    <UserInfoElementComponenet
+                      PersonSite={PersonTypeCalender}
+                      title={"Type du calendrier"}
+                    />
+                    <UserInfoElementComponenet
+                      PersonSite={PersonRegimeSalaire}
+                      title={"Régime du salaire"}
+                    />
+                    <UserInfoElementComponenet
+                      PersonSite={selectedPerson.SalaireBase}
+                      title={"Salaire de base"}
+                    />
+                    <UserInfoElementComponenet
+                      PersonSite={selectedPerson.NumCS}
+                      title={"N°de la C. S."}
+                    />
+                    <UserInfoElementComponenet
+                      PersonSite={selectedPerson.NumCNSS}
+                      title={" N° de la CNSS"}
+                    />
+                  </Box>
+                </Collapse>
+              </Box>
+            )}
+          </Box>
         </Box>
       )}
     </Box>

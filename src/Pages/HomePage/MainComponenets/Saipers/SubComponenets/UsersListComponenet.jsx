@@ -8,6 +8,10 @@ function UsersListComponenet({
   selectedIndex,
   handleListItemClick,
 }) {
+
+
+
+  console.log(tabcate);
   return saipers.persons.map((person, index) => (
     <Box
       sx={{ maxHeight: "200px", overflow: "auto" }}

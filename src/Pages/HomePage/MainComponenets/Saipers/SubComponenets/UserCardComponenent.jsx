@@ -1,4 +1,9 @@
-import { Avatar, ListItemAvatar, ListItemText, Typography } from "@mui/material";
+import {
+  Avatar,
+  ListItemAvatar,
+  ListItemText,
+  Typography,
+} from "@mui/material";
 import React from "react";
 import { ListItem } from "../styles/Styles";
 
@@ -6,9 +11,7 @@ function UserCard({ name, title, index, selectedIndexI }) {
   return (
     <ListItem
       sx={{
-       
         background: "yellow",
-       
       }}
       button
       selected={selectedIndexI === index}
@@ -27,7 +30,7 @@ function UserCard({ name, title, index, selectedIndexI }) {
             {title}
           </Typography>
         }
-        style={{lineHeight:1, margin:0}}
+        style={{ lineHeight: 1, margin: 0 }}
       />
     </ListItem>
   );

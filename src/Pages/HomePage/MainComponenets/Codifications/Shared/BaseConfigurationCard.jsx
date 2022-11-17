@@ -62,6 +62,7 @@ function BaseConfigurationCard({
   };
 
   const getMeData = async () => {
+    console.log(userContextState);
     GetTable(userContextState.company, tableName, "*", "true").then(
       (response) => {
         CreateTableData(response, columnTemplate, setTableRows);
