@@ -35,3 +35,24 @@ export const InsertEmployee = async (
   }
   return respo?.data ? respo?.data : null;
 };
+
+export const GetBultinPaie = async (company, SelectedMatricule) => {
+  let respo;
+  try {
+    respo = await axios.get("BulletinsPaie", {
+      headers: {
+        UserName: "Marwen",
+        Operation: "BulletinsPaie",
+        Client: company,
+        Site: "Empty",
+        Matricule: SelectedMatricule,
+        StartMonth: "03",
+        EndMonth: "04",
+        Year: "2022",
+      },
+    });
+  } catch (error) {
+    console.log(error);
+  }
+  return respo?.data ? respo?.data : null;
+};

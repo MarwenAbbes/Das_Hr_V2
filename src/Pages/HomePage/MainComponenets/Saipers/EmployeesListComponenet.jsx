@@ -3,6 +3,11 @@ import {
   Button,
   CardHeader,
   Collapse,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
   Divider,
   FormLabel,
   Input,
@@ -39,6 +44,7 @@ function EmployeesListComponenet() {
   const [TabCale, SetTabCale] = useState();
   const [TabPaie, SetTabPaie] = useState();
   const [TabCont, SetTabCont] = useState();
+  const [TabCivi, SetTabCivi] = useState();
 
   const [loading, setLoading] = useState(true);
   const [Mode, SetMode] = useState("Consultation");
@@ -57,9 +63,13 @@ function EmployeesListComponenet() {
   const [PersonNationalite, SetPersonNationalite] = useState("");
   const [PersonTypeCalender, SetPersonTypeCalender] = useState("");
   const [PersonRegimeSalaire, SetPersonRegimeSalaire] = useState("");
+  const [PersonEtatCivil, SetPersonEtatCivil] = useState("");
 
   const [selectedPerson, setSelectedPerson] = useState({});
   const [searchResult, SetSearchResult] = useState({ persons: [] });
+
+  const [BultinResponse, SetBultinResponse] = useState({});
+  const [BultinResponseLoading, SetBultinResponseLoading] = useState(false);
   //**************************************************************************** */
 
   let personInfos = {};
@@ -91,7 +101,12 @@ function EmployeesListComponenet() {
                                     (response) => (
                                       SetTabPaie(response),
                                       GetTable(ClientDB, "TabCont").then(
-                                        (response) => SetTabCont(response)
+                                        (response) => (
+                                          SetTabCont(response),
+                                          GetTable(ClientDB, "TabCivi").then(
+                                            (response) => SetTabCivi(response)
+                                          )
+                                        )
                                       )
                                     )
                                   )
@@ -120,7 +135,8 @@ function EmployeesListComponenet() {
         TabNatu !== undefined &&
         TabCale !== undefined &&
         TabPaie !== undefined &&
-        TabCont !== undefined
+        TabCont !== undefined &&
+        TabCivi !== undefined
       )
     );
   }, [
@@ -133,6 +149,7 @@ function EmployeesListComponenet() {
     TabCale,
     TabPaie,
     TabCont,
+    TabCivi,
   ]);
 
   const handleSearchChange = (e) => {
@@ -171,6 +188,10 @@ function EmployeesListComponenet() {
       (cate) => cate.CODE === person.AssisePaie
     );
 
+    const EtatCivilIndex = TabCivi.findIndex(
+      (cate) => cate.CODE === person.EtatCivil
+    );
+
     SetPersonFunction(
       tabcate[CategoryIndex].LABEL ? tabcate[CategoryIndex].LABEL : ""
     );
@@ -195,11 +216,88 @@ function EmployeesListComponenet() {
       TabPaie[TypePaieIndex].LABEL ? TabPaie[TypePaieIndex].LABEL : ""
     );
 
+    SetPersonEtatCivil(
+      TabCivi[EtatCivilIndex].LABEL ? TabCivi[EtatCivilIndex].LABEL : ""
+    );
+
     SetMode("Consultation");
   };
 
+  const BultindePaie = () => {
+    var Indims = "";
+    var Others = "";
+    BultinResponse.forEach((element) => {
+      Indims += `${element.Remuneration} : ${element.MontantRemune}` + "\n\r";
+      Others = `${element.Retenue} : ${element.MontantRetenue}` + "\n\r";
+    });
+    return Indims + Others;
+  };
+
+  const handleClose = () => {
+    SetBultinResponseLoading(false);
+  };
   return (
     <Box sx={{ margin: "0px", padding: "0px" }}>
+      {BultinResponseLoading && (
+        <Box>
+          <Dialog
+            // fullScreen={fullScreen}
+            open={BultinResponseLoading}
+            onClose={handleClose}
+            aria-labelledby="responsive-dialog-title"
+          >
+            <DialogTitle id="responsive-dialog-title">
+              {"Bulletin de paie"}
+            </DialogTitle>
+            <DialogContent>
+              <DialogContentText>
+                Matricule : {BultinResponse[0].Matricule} &emsp; &emsp; &emsp;
+                N° CNSS : {selectedPerson.NumCNSS}
+                <br />
+                Nom : {selectedPerson.Nom} &emsp; &emsp; &emsp; N° C.I :{" "}
+                {selectedPerson.NumCI}
+                <br />
+                Prenom : {selectedPerson.Prenom} &emsp; &emsp; &emsp; Etat Civil
+                :{PersonEtatCivil} <br />
+                Date de naissance : {selectedPerson.DateNaissance} &emsp; &emsp;
+                &emsp; Nb d'enfant : {selectedPerson.NbEnfant}
+                <br />
+                Categorie : {PersonFunction} &emsp; &emsp; &emsp; Echelle :{" "}
+                {selectedPerson.Echelle} &emsp; Echelon :{" "}
+                {selectedPerson.Echelon} <br />
+                Date de recrutement : {selectedPerson.DateRectrutement} &emsp;
+                &emsp; &emsp; Statut : {} <br />
+                Emploi-Qualification : {PersonCategory} <br />
+                {BultinResponse.map((element) =>
+                  element.Remuneration !== "" ? (
+                    <p>
+                      {`${element.Remuneration}  =  ${element.MontantRemune}`}
+                    </p>
+                  ) : (
+                    ""
+                  )
+                )}
+                {BultinResponse.map((element) =>
+                  element.Retenue !== "" ? (
+                    <p>{`${element.Retenue}  =  ${element.MontantRetenue}`}</p>
+                  ) : (
+                    ""
+                  )
+                )}
+              </DialogContentText>
+            </DialogContent>
+            <DialogActions>
+              <Button autoFocus onClick={handleClose}>
+                Disagree
+              </Button>
+              <Button onClick={handleClose} autoFocus>
+                Agree
+              </Button>
+            </DialogActions>
+          </Dialog>{" "}
+        </Box>
+      )}
+
       {loading && (
         <Box
           style={{
@@ -243,7 +341,14 @@ function EmployeesListComponenet() {
             />
           </Box>
           <Box sx={{ width: "80%", float: "right" }}>
-            <UserControlHeaderComponenet HandelFunction={SetMode} />
+            <UserControlHeaderComponenet
+              HandelFunction={SetMode}
+              SetBultinResponse={SetBultinResponse}
+              SetBultinResponseLoading={SetBultinResponseLoading}
+              BultinResponse={BultinResponse}
+              SelectedPersonMatricule={selectedPerson.Matricule}
+              Client={ClientDB}
+            />
 
             {Mode === "Add" && (
               <Box sx={{ marginTop: "5%" }}>

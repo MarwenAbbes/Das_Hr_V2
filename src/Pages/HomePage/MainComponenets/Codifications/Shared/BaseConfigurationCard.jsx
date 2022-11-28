@@ -152,7 +152,7 @@ function BaseConfigurationCard({
                     setOpenModal(false);
                   }}
                 >
-                  Fermer 0
+                  Fermer 
                 </Button>
                 <Button
                   variant="Success"
